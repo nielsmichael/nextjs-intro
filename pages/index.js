@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+
 import MeetupList from  '../components/meetups/MeetupList'
 
 const DUMMY_MEETUPS = [
@@ -17,8 +19,18 @@ const DUMMY_MEETUPS = [
   }
 ]
 
-const Home = () => {
-  return <MeetupList meetups={DUMMY_MEETUPS} />
+const Home = props => {
+  return <MeetupList meetups={props.meetups} />
+}
+
+export const getStaticProps = async () => {
+  // fetch data from API
+  // Must return object
+  return {
+    props: {
+      meetups: DUMMY_MEETUPS
+    }
+  }
 }
 
 export default Home
