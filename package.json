@@ -11,6 +11,7 @@
   "description": "Intro to NextJS",
   "dependencies": {
     "next": "10.0.7",
+    "postcss": "^8.4.14",
     "react": "17.0.1",
     "react-dom": "17.0.1"
   }

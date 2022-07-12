@@ -1,5 +1,3 @@
-import { useEffect, useState } from 'react'
-
 import MeetupList from  '../components/meetups/MeetupList'
 
 const DUMMY_MEETUPS = [
@@ -29,8 +27,25 @@ export const getStaticProps = async () => {
   return {
     props: {
       meetups: DUMMY_MEETUPS
-    }
+    },
+    revalidate: 10 // number of seconds until re-generating on server so long as there are requests coming in
   }
 }
 
 export default Home
+
+// getStaticProps alternative
+// export const getServerSideProps = async (context) => {
+//   // fetch data from API, etc
+//   // this code only runs on server
+
+//   const req = context.req
+//   const res = context.res
+
+//   return {
+//     props: {
+//       meetups: DUMMY_MEETUPS
+//     }
+//     // no need to revalidate in getServerSideProps runs for every request
+//   }
+// }
