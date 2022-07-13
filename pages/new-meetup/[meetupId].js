@@ -1,33 +1,47 @@
+import { MongoClient, ObjectId } from 'mongodb'
+
+const usr = process.env.NEXT_PUBLIC_MONGODB_USER;
+const pass = process.env.NEXT_PUBLIC_MONGODB_PASS;
+
+
 import MeetupDetail from "../../components/meetups/MeetupDetail"
 
-const MeetupDetails = () => {
+const MeetupDetails = props => {
   return (
     <MeetupDetail 
-      src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Scintillant_hummingbird_%28Selasphorus_scintilla%29_female_in_flight_1.jpg/1280px-Scintillant_hummingbird_%28Selasphorus_scintilla%29_female_in_flight_1.jpg"
-      alt='A first meetup' 
-      address='Some address'
-      description='Meetup description'
+      src={props.meetupData.image}
+      alt={props.meetupData.title} 
+      title={props.meetupData.title}
+      address={props.meetupData.address}
+      description={props.meetupData.description}
      />
   )
 }
 
 // getStaticProps needs getStaticPaths
 export const getStaticPaths = async () => {
+  const client = await MongoClient.connect(
+    "mongodb+srv://" +
+      usr +
+      ":" +
+      pass +
+      "@cluster0.j7nvv.mongodb.net/meetups?retryWrites=true&w=majority"
+  ) // NEVER RUN THIS CODE ON THE CLIENT SIDE!!! EVER!!! thank you for coming to my ted talk
+  const db = client.db()
+
+  const meetupsCollection = db.collection("meetups")
+
+  const meetups = await meetupsCollection.find({}, { _id: 1 }).toArray()
+
+  client.close()
+
   return { // Returns object 
     // Always add fallback, false indicates that all supported paths are outlined below
     fallback: false,
-    paths: [ // To be generated dynamically, but for now hardcode
-      { 
-        params: {
-          meetupId: 'm1',
-        },
-      },
-      {
-        params: {
-          meetupId: 'm2'
-        },
-      },
-    ]
+    paths: meetups.map(meetup => ({
+      // Dynamically generate array of paths based on the array of ids returned from collection.find() above
+      params: { meetupId: meetup._id.toString() },
+    })),
   }
 }
 
@@ -39,15 +53,30 @@ export const getStaticProps = async context => {
   // Parent key
   const meetupId = context.params.meetupId
 
+  const client = await MongoClient.connect(
+    "mongodb+srv://" +
+      usr +
+      ":" +
+      pass +
+      "@cluster0.j7nvv.mongodb.net/meetups?retryWrites=true&w=majority"
+  ) // NEVER RUN THIS CODE ON THE CLIENT SIDE!!! EVER!!! thank you for coming to my ted talk
+  const db = client.db()
+
+  const meetupsCollection = db.collection("meetups")
+
+  // Access single meetup
+  const selectedMeetup = await meetupsCollection.findOne({ _id: ObjectId(meetupId) })
+
+  client.close()
+
   return {
     props: {
       meetupData: {
-        image:
-          "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Scintillant_hummingbird_%28Selasphorus_scintilla%29_female_in_flight_1.jpg/1280px-Scintillant_hummingbird_%28Selasphorus_scintilla%29_female_in_flight_1.jpg",
-        id: meetupId,
-        title: 'First meetup',
-        address: 'Some address',
-        description: 'First meetup description',
+        id: selectedMeetup._id.toString(),
+        title: selectedMeetup.title,
+        address: selectedMeetup.address,
+        image: selectedMeetup.image,
+        description: selectedMeetup.description
       },
     },
   }
